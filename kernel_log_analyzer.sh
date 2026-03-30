@@ -1,48 +1,47 @@
 #!/bin/bash
-# Script 4: Log File Analyzer
-# Author: Anshu
-# Course: Open Source Software
-# Project: The Open Source Audit - Linux Kernel
-# Usage: ./kernel_log_analyzer.sh /var/log/dmesg
+# Script: Kernel Log Analyzer (Improved)
+# Purpose: Analyze system logs for errors and warnings with summary
 
-# --- Variables ---
-# Argument 1 is the log file path, Argument 2 is the optional keyword [cite: 170, 171]
-LOGFILE=$1
-KEYWORD=${2:-"error"}  # Defaults to 'error' if no second argument is provided [cite: 171, 173]
-COUNT=0
+LOG_FILE="$1"
 
-echo "==========================================="
-echo "      KERNEL LOG ANALYSIS REPORT           "
-echo "==========================================="
-
-# --- File Validation (Requirement: if-then) ---
-if [ ! -f "$LOGFILE" ]; then
-    echo "Error: Log file '$LOGFILE' not found." [cite: 176]
-    echo "Tip: Try /var/log/syslog or run 'dmesg > klog.txt' and analyze that."
+# Check if argument is provided
+if [ -z "$LOG_FILE" ]; then
+    echo "Usage: $0 <log_file>"
     exit 1
 fi
 
-# --- Line-by-Line Processing (Requirement: while-read loop) ---
-# IFS= prevents leading/trailing whitespace from being trimmed [cite: 177]
-while IFS= read -r LINE; do
-    # Requirement: if-then inside the loop to check for keywords 
-    if echo "$LINE" | grep -iq "$KEYWORD"; then
-        COUNT=$((COUNT + 1)) [cite: 181]
-        # Store the last matching line to show in the summary
-        LAST_MATCH="$LINE"
-    fi
-done < "$LOGFILE" [cite: 182]
-
-# --- Summary Output ---
-echo "Analysis Complete for: $LOGFILE"
-echo "Search Keyword     : '$KEYWORD'"
-echo "Total Occurrences  : $COUNT" [cite: 183]
-echo "-------------------------------------------"
-
-if [ $COUNT -gt 0 ]; then
-    echo "Last detected instance:"
-    echo ">> $LAST_MATCH"
-else
-    echo "No $KEYWORD messages found in the log."
+# Check if file exists
+if [ ! -f "$LOG_FILE" ]; then
+    echo "Invalid file: $LOG_FILE"
+    exit 1
 fi
-echo "==========================================="
+
+echo "Analyzing log file: $LOG_FILE"
+echo "-------------------------------------"
+
+# Count errors and warnings separately
+ERROR_COUNT=$(grep -i "error" "$LOG_FILE" | wc -l)
+WARNING_COUNT=$(grep -i "warning" "$LOG_FILE" | wc -l)
+TOTAL_COUNT=$((ERROR_COUNT + WARNING_COUNT))
+
+echo "Total Issues Found : $TOTAL_COUNT"
+echo "Errors            : $ERROR_COUNT"
+echo "Warnings          : $WARNING_COUNT"
+
+echo ""
+echo "Top 5 Most Frequent Issues:"
+echo "-------------------------------------"
+
+# Show top 5 repeated error/warning lines
+grep -iE "error|warning" "$LOG_FILE" \
+    | sort \
+    | uniq -c \
+    | sort -nr \
+    | head -5
+
+echo ""
+echo "Recent 5 Issues:"
+echo "-------------------------------------"
+
+# Show last 5 matching lines
+grep -iE "error|warning" "$LOG_FILE" | tail -5
