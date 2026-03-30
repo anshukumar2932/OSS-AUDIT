@@ -1,0 +1,8 @@
+--- MY OPEN SOURCE MANIFESTO ---
+Created on: 30 March 2026
+
+I believe that software like Linux thrives because of community collaboration.
+To me, the heart of open source is Free—the right to study, change, and distribute code.
+In this spirit, I commit to building No and sharing it freely with the world.
+
+Signed, anshu
